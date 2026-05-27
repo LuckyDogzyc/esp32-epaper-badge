@@ -1,0 +1,15 @@
+*.kicad_pcb-bak
+*.kicad_sch-bak
+*.kicad_pro-bak
+*.bak
+*-backups/
+*-cache.lib
+*-rescue.lib
+__pycache__/
+*.pyc
+.env
+node_modules/
+.next/
+*.db
+test_sch.kicad_sch
+generate_kicad.py
