@@ -792,6 +792,11 @@
     )
   )
 
+  (text "E: Battery Voltage Sensing (GPIO34)" (at 225 248 0)
+    (effects (font (size 2.54 2.54)) (justify left bottom))
+    (uuid 0db3e1b2-4e29-4253-9abd-14e8377fe684)
+  )
+
   (text "A: ESP32-WROOM-32D MCU" (at 20 13 0)
     (effects (font (size 2.54 2.54)) (justify left bottom))
     (uuid db8fc00f-b89f-4ef5-9a77-3e0cb7443967)
@@ -807,6 +812,15 @@
   (text "D: Debug Switch + Status LED" (at 240 170 0)
     (effects (font (size 2.54 2.54)) (justify left bottom))
     (uuid 5b0057fd-22a4-4dbf-8af0-df812513af40)
+  )
+
+  (wire (pts (xy 230 265.0) (xy 245 265.0))
+    (stroke (width 0) (type default))
+    (uuid 44fb5573-bc3a-4951-baef-237567f2a425)
+  )
+  (wire (pts (xy 230 275.16) (xy 245 275.16))
+    (stroke (width 0) (type default))
+    (uuid eadd0579-a96c-468e-8eca-ff3e4caa2fc8)
   )
 
   (wire (pts (xy 35 200) (xy 60 200))
@@ -852,6 +866,23 @@
   (wire (pts (xy 40 10) (xy 40 20))
     (stroke (width 0) (type default))
     (uuid bb8fe737-bb63-4ab9-901f-dadfb4b27509)
+  )
+
+  (global_label "VBAT" (shape output) (at 230 254.84 0) (fields_autoplaced)
+    (effects (font (size 1.27 1.27)) (justify left))
+    (uuid 84a6decd-7890-4719-91e5-c4558b4f395d)
+  )
+  (label "VBAT_SENSE" (at 235 265.0 0)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid 74a84a1b-63f3-47b1-af0c-e88992d5e89e)
+  )
+  (global_label "GND" (shape input) (at 230 275.16 0) (fields_autoplaced)
+    (effects (font (size 1.27 1.27)) (justify left))
+    (uuid 8bddd818-02b2-4649-8877-11cca6f4cba5)
+  )
+  (label "VBAT_SENSE" (at 100 90 0)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid d1968d8d-061d-4dff-8326-c46824136fe7)
   )
 
   (global_label "VBUS" (shape input) (at 20 195 0) (fields_autoplaced)
@@ -1941,11 +1972,75 @@
     )
   )
 
+  (symbol (lib_id "Device:R") (at 230 259.92 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 54a7cd7b-874f-4a66-ba55-5686449b3f6c)
+    (property "Reference" "R12" (at 230 254.84 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Value" "100k" (at 230 265.0 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (pin "1" (uuid eb38a514-a4d0-4e27-b5ad-d77090851b27))
+    (pin "2" (uuid b4fe496c-2f24-4091-b949-e82055539f24))
+    (instances
+      (project "esp32-epaper"
+        (path "/6281fcfa-6553-4706-b287-236232e6465c"
+          (reference "R12") (unit 1)
+        )
+      )
+    )
+  )
+
+  (symbol (lib_id "Device:R") (at 230 270.08 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 06daef87-462d-45ee-8b88-b0b52aab98b7)
+    (property "Reference" "R13" (at 230 265.0 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Value" "100k" (at 230 275.15999999999997 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (pin "1" (uuid ef075917-e53e-4eb6-a913-4906369d60e9))
+    (pin "2" (uuid 7e9a1226-e723-4620-afb7-9788d1e90414))
+    (instances
+      (project "esp32-epaper"
+        (path "/6281fcfa-6553-4706-b287-236232e6465c"
+          (reference "R13") (unit 1)
+        )
+      )
+    )
+  )
+
+  (symbol (lib_id "Device:C") (at 245 270.08 0) (unit 1)
+    (in_bom yes) (on_board yes) (dnp no)
+    (uuid 41b2fce2-821a-467a-8146-ab040659ef65)
+    (property "Reference" "C21" (at 245 265.0 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (property "Value" "100nF" (at 245 275.15999999999997 0)
+      (effects (font (size 1.27 1.27)))
+    )
+    (pin "1" (uuid 7fcca5a2-8222-40af-820b-0451e2a73be4))
+    (pin "2" (uuid ac404ab2-1025-453f-8663-b71637bb32b8))
+    (instances
+      (project "esp32-epaper"
+        (path "/6281fcfa-6553-4706-b287-236232e6465c"
+          (reference "C21") (unit 1)
+        )
+      )
+    )
+  )
+
   (sheet_instances
     (path "/" (page "1"))
   )
 
   (symbol_instances
+    (path "/6281fcfa-6553-4706-b287-236232e6465c/54a7cd7b-874f-4a66-ba55-5686449b3f6c" (reference "R12") (unit 1) (value "100k") (footprint ""))
+    (path "/6281fcfa-6553-4706-b287-236232e6465c/06daef87-462d-45ee-8b88-b0b52aab98b7" (reference "R13") (unit 1) (value "100k") (footprint ""))
+    (path "/6281fcfa-6553-4706-b287-236232e6465c/41b2fce2-821a-467a-8146-ab040659ef65" (reference "C21") (unit 1) (value "100nF") (footprint ""))
+
     (path "/6281fcfa-6553-4706-b287-236232e6465c/6402d9dd-a208-4367-8163-666c8787e4f2" (reference "U1") (unit 1) (value "ESP32-WROOM-32D") (footprint "RF_Module:ESP32-WROOM-32D"))
     (path "/6281fcfa-6553-4706-b287-236232e6465c/10cec9ef-4cef-4535-8a27-95e354456df5" (reference "C1") (unit 1) (value "10uF") (footprint ""))
     (path "/6281fcfa-6553-4706-b287-236232e6465c/f212417e-6756-42ff-ae72-f2e18409f69f" (reference "C2") (unit 1) (value "100nF") (footprint ""))
