@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Add battery voltage sensing divider to ESP32 E-Paper Badge v1.0.
+"""Add battery voltage sensing divider to ESP32 E-Paper Badge v1.1.
 
 Circuit: BAT+ -> R12(100k) -> [VBAT_SENSE] -> R13(100k) -> GND
          C21(100nF) from VBAT_SENSE to GND (filter)

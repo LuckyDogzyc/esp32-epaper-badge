@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate KiCad 7 schematic for ESP32 E-Paper Badge v1.0.
+"""Generate KiCad 7 schematic for ESP32 E-Paper Badge v1.1.
 
 Uses kiutils but patches output to be fully KiCad 7 compliant.
 """
@@ -104,9 +104,9 @@ def build_schematic():
         uuid=SCHEMATIC_UUID,
         paper=PageSettings(paperSize='A3', portrait=True),
         titleBlock=TitleBlock(
-            title='ESP32 E-Paper Badge v1.0',
-            date='2025-05-27',
-            revision='1.0',
+            title='ESP32 E-Paper Badge v1.1',
+            date='2026-06-04',
+            revision='1.1',
             company='LuckyDog',
             comments={
                 1: 'ESP32-WROOM-32D + SSD1680 + TP4056 + HT7333',
@@ -183,7 +183,7 @@ def build_schematic():
     place_symbol(sch, 'Device', 'C', 'C19', '10µF', 185, 210, num_pins=2)
     place_symbol(sch, 'Device', 'C', 'C20', '10µF', 215, 210, num_pins=2)
     
-    place_symbol(sch, 'esp32-epaper-lib', 'BatteryHolder_18650', 'BT1', '18650',
+    place_symbol(sch, 'esp32-epaper-lib', 'BatteryHolder_18650', 'BT1', '103040 LiPo',
                  200, 270, num_pins=2)
     
     # ═══════════════════════════════════════════════════════════

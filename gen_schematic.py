@@ -4,7 +4,7 @@
 Circuit blocks:
   A: ESP32-WROOM-32D (MCU) — uses Device:R, Device:C etc from KiCad standard lib
   B: SSD1680 + FPC-26P (E-Paper Driver)
-  C: TP4056 + DW01A + FS8205A + HT7333 (Power)
+  C: TP4056 + DW01A + FS8205A + HT7333 + D3/D4 USB/Battery OR-ing (Power)
   D: USB-C Connector
   E: Toggle Switch + Status LED
   F: Decoupling caps and pull-up resistors
@@ -178,13 +178,13 @@ def build_schematic():
         uuid=uid(),
         paper=PageSettings(paperSize='A3', portrait=True),
         titleBlock=TitleBlock(
-            title='ESP32 E-Paper Badge v1.0',
-            date='2025-05-27',
-            revision='1.0',
+            title='ESP32 E-Paper Badge v1.1',
+            date='2026-06-04',
+            revision='1.1',
             company='LuckyDog',
             comments={
                 1: 'ESP32-WROOM-32D + SSD1680 + TP4056 + HT7333',
-                2: '2.13" Tri-color E-Paper, USB-C Charging',
+                2: '2.13" Tri-color E-Paper, USB-C Charging + USB Direct Power',
                 3: 'Source: ESP32 HWDG v4.4 + SSD1680 DS v1.2 + Driver Board v1.3',
                 4: 'NOT FOR PRODUCTION - Verify with ERC before PCB layout',
             },
@@ -291,6 +291,10 @@ def build_schematic():
     place_symbol(sch, 'Device', 'C', 'C4', '10µF', 55, 210)
     place_symbol(sch, 'Device', 'C', 'C5', '10µF', 95, 210)
     
+    # D3/D4: USB/Battery power-path OR-ing (SS14 Schottky)
+    place_symbol(sch, 'Device', 'D', 'D3', 'SS14', 105, 235)
+    place_symbol(sch, 'Device', 'D', 'D4', 'SS14', 175, 235)
+
     # DW01A battery protection
     place_symbol(sch, 'esp32-epaper-lib', 'DW01A', 'U4', 'DW01A', 140, 210)
     
@@ -310,7 +314,12 @@ def build_schematic():
     place_symbol(sch, 'Device', 'C', 'C20', '10µF', 215, 210)
     
     # Battery holder
-    place_symbol(sch, 'esp32-epaper-lib', 'BatteryHolder_18650', 'BT1', '18650', 200, 270)
+    place_symbol(sch, 'esp32-epaper-lib', 'BatteryHolder_18650', 'BT1', '103040 LiPo', 200, 270)
+    place_symbol(sch, 'esp32-epaper-lib', 'PH2_0-2P-Battery', 'J3', 'PH2.0 2P Battery', 220, 270)
+    # Battery voltage sensing: 100k/100k divider + 100nF filter to ESP32 GPIO34
+    place_symbol(sch, 'Device', 'R', 'R12', '100kΩ', 230, 260)
+    place_symbol(sch, 'Device', 'R', 'R13', '100kΩ', 230, 270)
+    place_symbol(sch, 'Device', 'C', 'C21', '100nF', 245, 270)
     
     # ═══════════════════════════════════════════════════════════
     # SECTION D: Peripherals (Switch + LED)
@@ -329,6 +338,8 @@ def build_schematic():
     
     # VBUS (USB 5V)
     label(sch, 'VBUS', 20, 195, 'input')
+    label(sch, 'VBUS', 105, 230, 'input')
+    label(sch, 'VCC_RAIL', 190, 230, 'output')
     
     # 3V3 system power
     label(sch, '3V3', 140, 175, 'power_out')  # From HT7333 output
@@ -337,7 +348,9 @@ def build_schematic():
     
     # VBAT (battery voltage)
     label(sch, 'VBAT', 120, 220, 'output')    # TP4056 BAT
+    label(sch, 'VBAT', 175, 230, 'input')     # D4 anode
     label(sch, 'VBAT', 195, 200, 'input')     # HT7333 VIN
+    label(sch, 'VBAT_SENSE', 235, 265, 'output')  # Divider midpoint
     
     # GND
     label(sch, 'GND', 20, 180, 'input')
@@ -364,6 +377,8 @@ def build_schematic():
     local_label(sch, 'EPD_DC', 160, 70)
     local_label(sch, 'EPD_RST', 160, 65)
     local_label(sch, 'EPD_BUSY', 160, 90)
+    local_label(sch, 'VBAT_SENSE', 135, 85)
+    local_label(sch, 'VBAT_SENSE', 235, 265)
     
     # Debug switch
     local_label(sch, 'DEBUG_SW', 15, 100)
@@ -389,7 +404,7 @@ def build_schematic():
         uuid=uid(),
     ))
     sch.graphicalItems.append(Text(
-        text='C: Power Management (USB-C → TP4056 → DW01A → HT7333)',
+        text='C: Power Management (USB-C/103040 LiPo → D3/D4 → HT7333)',
         position=Position(X=15, Y=170),
         effects=Effects(font=Font(height=2.54, width=2.54)),
         uuid=uid(),
@@ -416,6 +431,16 @@ def build_schematic():
     # VBAT → HT7333 VIN
     wire(sch, 120, 220, 190, 220)
     wire(sch, 190, 220, 190, 210)
+    # VBUS/VBAT OR-ing diodes → VCC_RAIL
+    wire(sch, 105, 235, 130, 235)
+    wire(sch, 175, 235, 190, 235)
+    wire(sch, 130, 235, 130, 220)
+    wire(sch, 190, 235, 190, 220)
+    # VBAT sense divider/filter
+    wire(sch, 230, 260, 230, 265)
+    wire(sch, 230, 265, 245, 265)
+    wire(sch, 230, 270, 230, 275)
+    wire(sch, 245, 270, 245, 275)
     
     # HT7333 VOUT → 3V3
     wire(sch, 210, 210, 215, 210)

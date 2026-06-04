@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Generate KiCad 7 symbol library for ESP32 E-Paper Badge.
 
-Custom parts: TP4056, DW01A, FS8205A, HT7333-1, SSD1680, USB-C-16P, FPC-26P, ToggleSwitch
+Custom parts: TP4056, DW01A, FS8205A, HT7333-1, SSD1680, USB-C-16P, FPC-26P,
+PH2.0 battery connector, ToggleSwitch
 """
 import os, sys
 from kiutils.symbol import (
@@ -249,6 +250,17 @@ def main():
         body_w=800, body_h=300,
     ))
     
+    # ── PH2.0 2-pin connector for 103040 LiPo battery ──
+    symbols.append(make_sym('PH2_0-2P-Battery', 'J',
+        left_pins=[
+            (1, 'BAT+', 'power_out'),
+        ],
+        right_pins=[
+            (2, 'BAT-', 'power_in'),
+        ],
+        body_w=500, body_h=300,
+    ))
+
     # ── Toggle Switch SPDT ──
     symbols.append(make_sym('ToggleSwitch_SPDT', 'SW',
         left_pins=[

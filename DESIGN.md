@@ -3,13 +3,13 @@
 ## 项目概述
 - 每日自动唤醒、WiFi连接、更新数据、刷新屏幕、deep sleep
 - 拨动开关切调试/正常模式
-- USB-C 充电 + 18650 电池供电
+- USB-C 充电 + USB 直供电 + 103040 软包电池 PH2.0 接口供电
 - 2.13" 三色电子纸 (DEPG0213RWS, SSD1680)
 
 ## 方案确认
 - MCU: ESP32-WROOM-32D (经典款，与用户现有开发板一致)
 - 屏幕: DEPG0213RWS (2.13" 黑白红三色, SSD1680驱动)
-- 供电: USB-C → TP4056 → 18650 → HT7333 → 3.3V
+- 供电: USB-C VBUS / 103040 VBAT → D3/D4 SS14 自动切换 → VCC_RAIL → HT7333 → 3.3V
 
 ---
 
@@ -25,6 +25,7 @@
 | EPD_BUSY  | GPIO4      | INPUT  | 屏幕忙状态            |
 | DEBUG_SW  | GPIO2      | INPUT  | LOW=调试模式, HIGH=正常|
 | LED       | GPIO19     | OUTPUT | 状态指示灯(刷新时亮)    |
+| VBAT_SENSE| GPIO34     | INPUT  | 电池电量 ADC1_CH6       |
 
 ## 2. 电路模块
 
@@ -83,7 +84,7 @@ SSD1680 SPI连接:
 连接:
 - VCC (Pin 4) ← USB-C 5V (VBUS)
 - GND (Pin 3) → GND
-- BAT (Pin 5) → 18650正极
+- BAT (Pin 5) → VBAT → 103040软包电池正极/J3 pin1
 - PROG (Pin 2) → R4到GND
 - CHRG (Pin 1) → 悬空或接LED指示
 - STDBY (Pin 6) → 悬空或接LED指示
@@ -100,7 +101,7 @@ SSD1680 SPI连接:
 
 连接: 标准DW01A+FS8205A参考设计
 
-### 模块E: HT7333-1 超低功耗LDO
+### 模块E: D3/D4 电源路径切换 + HT7333-1 超低功耗LDO
 来源: HT7333 Datasheet
 
 组件:
@@ -109,9 +110,15 @@ SSD1680 SPI连接:
 - C20: 10μF 0805 (输出滤波)
 
 连接:
-- VIN ← 18650正极 (电池电压 3.0~4.2V)
+- VIN ← VCC_RAIL（D3/D4 汇聚后的 USB 或电池输入）
 - VOUT → 3V3 系统电源
 - GND → GND
+
+电源路径:
+- USB-C VBUS → D3(SS14) → VCC_RAIL
+- VBAT/J3 pin1 → D4(SS14) → VCC_RAIL
+- USB 插入且无电池时，VBUS 经 D3 直接给 HT7333 供电，系统可运行
+- USB 拔掉且有电池时，VBAT 经 D4 给 HT7333 供电
 
 ### 模块F: USB-C 母座
 组件:
@@ -124,7 +131,20 @@ SSD1680 SPI连接:
 - CC1 → R9 → GND
 - CC2 → R10 → GND
 - GND → GND
-- D+/D- → 悬空 (仅充电, 不需要数据传输)
+- D+/D- → 预留给 USB 转串口/调试，如不贴 CH340 可悬空
+
+### 模块H: 103040 电池接口 + 电量检测
+组件:
+- J3: PH2.0 2pin 电池接口
+- R12/R13: 100kΩ/100kΩ 电池分压
+- C21: 100nF 滤波
+
+连接:
+- J3 pin1 BAT+ → VBAT
+- J3 pin2 BAT- → GND
+- VBAT → R12 → VBAT_SENSE → R13 → GND
+- C21 与 R13 并联到 GND
+- VBAT_SENSE → ESP32 GPIO34 (ADC1_CH6)
 
 ### 模块G: 调试开关 + 状态LED
 组件:
@@ -172,20 +192,26 @@ SSD1680 SPI连接:
 | J1    | USB-C 16pin母座     | 沉板式    | 1    | 0.30       |
 | FPC1  | 26P 0.5mm FPC座     | 下接     | 1    | 0.50       |
 | SW1   | 拨动开关 3pin        | 贴片     | 1    | 0.20       |
-| BT1   | 18650电池盒         | 贴片式    | 1    | 0.80       |
+| BT1   | 103040软包电池标注   | 外购      | 1    | -          |
+| J3    | PH2.0 2P电池接口     | 卧式/贴片 | 1    | 0.10       |
+| D3,D4 | SS14肖特基二极管     | SMA       | 2    | 0.10       |
+| R12,R13| 100kΩ              | 0402/0805 | 2    | 0.02       |
+| C21   | 100nF               | 0402/0805 | 1    | 0.01       |
 
-**BOM总计(不含屏幕电池): ~¥13.5**
-**含屏幕(¥9) + 电池(¥12): ~¥34.5**
+**BOM总计(不含屏幕电池): ~¥15**
+**含屏幕(¥9) + 103040电池(¥12): ~¥36**
 
 ---
 
 ## 4. 网络连接表 (Netlist)
 
 ### 电源网络
-- VBUS: USB-C 5V → TP4056 VCC
-- VBAT: TP4056 BAT / DW01A+FS8205A / HT7333 VIN / 18650+
+- VBUS: USB-C 5V → TP4056 VCC → D3 阳极
+- VBAT: TP4056 BAT / DW01A+FS8205A / J3 BAT+ / D4 阳极 / R12 上端
+- VCC_RAIL: D3/D4 阴极汇聚 → HT7333 VIN
 - 3V3: HT7333 VOUT / ESP32 VDD / SSD1680 VDD / 所有上拉电阻
 - GND: 公共地
+- VBAT_SENSE: R12/R13 中点 + C21 → ESP32 GPIO34
 
 ### SPI 总线
 - EPD_CLK:  GPIO18 → SSD1680 CLK → FPC1
