@@ -1,6 +1,6 @@
 # ESP32 E-Paper Badge
 
-低功耗 ESP32 + 2.13" 三色电子纸显示器，用于每日自动更新数据展示。当前版本为 v1.1，已按外包需求补充 USB-C 直供电、电池自动切换、103040 软包电池 PH2.0 接口和电池电量检测。
+低功耗 ESP32 + 2.13" 三色电子纸显示器，用于每日自动更新数据展示。当前参考原理图版本为 v1.2：已补充 USB-C 直供电、电池自动切换、103040 软包电池 PH2.0 接口、电池电量检测，以及独立的 USER_BTN 用户按键。**本版本仅用于下一版 PCB/reference schematic；现有外部原型 GPIO 映射不同，不能据此改线或直接刷写。**
 
 ## 硬件方案
 
@@ -21,6 +21,7 @@
 4. **DW01A+FS8205A 保护** — 抄数据手册参考设计
 5. **HT7333 LDO** — VCC_RAIL 转 3.3V 系统电源
 6. **VBAT_SENSE 电量检测** — R12/R13 100k 分压 + C21 100nF 滤波 → GPIO34
+7. **USER_BTN 独立用户按键** — SW2 常开按键把 `USER_BTN_N` 拉低；R14 10k 外部上拉至 3V3，C22 100nF 去抖；连接 GPIO33，绝不接 ESP32 EN/RST
 
 ## GPIO 分配
 
@@ -34,14 +35,22 @@
 | 4 | Busy | SSD1680.BUSY |
 | 2 | Debug Switch | SW1 (LOW=调试) |
 | 19 | LED | D5 状态指示 |
+| 33 | USER_BTN | `USER_BTN_N`，独立 active-low 用户按键（短按状态；按住 ≥5 秒网络配网） |
 | 34 | ADC | VBAT_SENSE 电池电量检测 |
+
+### USER_BTN firmware contract (next PCB)
+
+- Configure GPIO33 as an input; `USER_BTN_N` is **active-low** and has the fitted external R14 10k pull-up, so firmware must not rely on an internal pull-up.
+- Apply a ≥20 ms software debounce; on a debounced press/release shorter than 5 seconds, show the device status.
+- On a continuous debounced low level of **at least 5 seconds**, enter/keep awake for network provisioning. It is not a reset action.
+- ESP32 EN/RST remains the normal reset/enable circuit only; do not connect USER_BTN firmware or PCB wiring to EN.
 
 ## 文件说明
 
 | 文件 | 说明 |
 |------|------|
 | `esp32-epaper.kicad_pro` | KiCad 7 项目文件 |
-| `esp32-epaper.kicad_sch` | 原理图，52 个组件已放置 |
+| `esp32-epaper.kicad_sch` | v1.2 下一版 PCB 参考原理图，55 个组件已放置（含 GPIO33 USER_BTN） |
 | `esp32-epaper-lib.kicad_sym` | 自定义符号库 |
 | `DESIGN.md` | 完整设计文档 (BOM/网络表/引脚定义) |
 | `schematic-preview.html` | 浏览器可查看的可视化原理图 |

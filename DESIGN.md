@@ -5,6 +5,7 @@
 - 拨动开关切调试/正常模式
 - USB-C 充电 + USB 直供电 + 103040 软包电池 PH2.0 接口供电
 - 2.13" 三色电子纸 (DEPG0213RWS, SSD1680)
+- **v1.2 is the next-PCB/reference schematic only.** The external prototype has a different GPIO map; do not apply this wiring to it without a board-specific review.
 
 ## 方案确认
 - MCU: ESP32-WROOM-32D (经典款，与用户现有开发板一致)
@@ -25,6 +26,7 @@
 | EPD_BUSY  | GPIO4      | INPUT  | 屏幕忙状态            |
 | DEBUG_SW  | GPIO2      | INPUT  | LOW=调试模式, HIGH=正常|
 | LED       | GPIO19     | OUTPUT | 状态指示灯(刷新时亮)    |
+| USER_BTN  | GPIO33     | INPUT  | `USER_BTN_N`，独立 active-low 按键；非 strapping GPIO；短按状态、连续按住 ≥5s 配网 |
 | VBAT_SENSE| GPIO34     | INPUT  | 电池电量 ADC1_CH6       |
 
 ## 2. 电路模块
@@ -158,6 +160,23 @@ SSD1680 SPI连接:
 - D5正极 → R11 → GPIO19
 - D5负极 → GND
 
+### 模块I: USER_BTN 独立用户按键（v1.2，下一版 PCB）
+组件:
+- SW2: 常开轻触按键，`Button_Switch_SMD:SW_SPST_TL3301AN`
+- R14: 10kΩ 0603，外部上拉
+- C22: 100nF 0603，硬件去抖/EMI 滤波（RC = 1ms）
+
+连接:
+- `USER_BTN_N` → ESP32 GPIO33（U1 pin 23）
+- R14: 3V3 → `USER_BTN_N`
+- C22: `USER_BTN_N` → GND
+- SW2: `USER_BTN_N` → GND；按下时为低电平
+- **EN/RST 仅保留 ESP32 正常 reset/enable 网络；SW2 与 EN 没有任何连接。** GPIO33 在当前原理图中未使用，且不是 ESP32 strapping pin；GPIO34 保留给 VBAT_SENSE。
+
+Firmware contract:
+- GPIO33 作为输入，使用外部上拉；以 ≥20ms 软件去抖。
+- 小于 5 秒的已去抖按键动作用于状态显示；连续低电平 ≥5 秒进入并保持唤醒的网络配网流程，绝不复位芯片。
+
 ---
 
 ## 3. 完整 BOM
@@ -196,10 +215,13 @@ SSD1680 SPI连接:
 | J3    | PH2.0 2P电池接口     | 卧式/贴片 | 1    | 0.10       |
 | D3,D4 | SS14肖特基二极管     | SMA       | 2    | 0.10       |
 | R12,R13| 100kΩ              | 0402/0805 | 2    | 0.02       |
+| R14    | 10kΩ               | 0603     | 1    | 0.01       |
 | C21   | 100nF               | 0402/0805 | 1    | 0.01       |
+| C22   | 100nF               | 0603     | 1    | 0.01       |
+| SW2   | USER_BTN, 常开轻触按键 | TL3301AN/SMD | 1 | 0.15       |
 
-**BOM总计(不含屏幕电池): ~¥15**
-**含屏幕(¥9) + 103040电池(¥12): ~¥36**
+**BOM总计(不含屏幕电池): ~¥15.17**
+**含屏幕(¥9) + 103040电池(¥12): ~¥36.17**
 
 ---
 
@@ -230,6 +252,7 @@ SSD1680 SPI连接:
 ### 其他
 - DEBUG: GPIO2 ← SW1 (开关到GND)
 - LED:   GPIO19 → R11 → D5 → GND
+- USER_BTN_N: GPIO33 ↔ R14(3V3 上拉) + C22(GND 去抖) + SW2(GND，按下为 LOW)；EN/RST 不参与
 - CC1:   J1 CC1 → R9 → GND
 - CC2:   J1 CC2 → R10 → GND
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ESP32 E-Paper Badge — Schematic v1.1</title>
+<title>ESP32 E-Paper Badge — Schematic v1.2</title>
 <style>
   body { margin:0; padding:28px; font-family: Inter, 'Microsoft YaHei', Arial, sans-serif; background:#0d1117; color:#e6edf3; }
   h1 { color:#58a6ff; text-align:center; margin-bottom:6px; }
@@ -24,8 +24,8 @@
 </style>
 </head>
 <body>
-<h1>ESP32 E-Paper Badge — Schematic Preview v1.1</h1>
-<div class="subtitle">52 components placed | USB-C charging + USB direct power | D3/D4 SS14 power-path OR-ing | 103040 LiPo PH2.0 | VBAT_SENSE</div>
+<h1>ESP32 E-Paper Badge — Next-PCB Schematic Preview v1.2</h1>
+<div class="subtitle">55 components placed | GPIO33 USER_BTN_N active-low (R14 10k + C22 100nF + SW2) | EN/RST remains reset-only</div>
 
 <div class="flow">
   <div class="rail">
@@ -41,7 +41,7 @@
 <section class="card"><h2>Power Path</h2><h3>D3/D4 SS14 OR-ing</h3><p>VBUS/VBAT -> VCC_RAIL -> U6 HT7333 -> 3V3</p></section>
 <section class="card"><h2>Battery</h2><h3>J3 PH2.0 + BT1 103040 LiPo</h3><p>R12/R13 100k divider + C21 filter -> GPIO34</p></section>
 <section class="card"><h2>Protection</h2><h3>U4 DW01A + U5 FS8205A</h3><p>Li-ion overcharge/overdischarge/overcurrent protection</p></section>
-<section class="card"><h2>User IO</h2><h3>SW1 Debug switch + D5 LED</h3><p>R11 LED limit, DEBUG_SW mode select</p></section></div>
+<section class="card"><h2>User IO</h2><h3>SW1 Debug switch + SW2 USER_BTN + D5 LED</h3><p>GPIO33 USER_BTN_N: R14 10k pull-up + C22 100nF debounce; short=status, >=5s=provisioning</p></section></div>
 
 <table>
 <thead><tr><th>Ref</th><th>Value</th><th>Package</th><th>Function</th></tr></thead>
@@ -58,13 +58,14 @@
 <tr><td>D3,D4</td><td>SS14</td><td>SMA</td><td>USB/Battery power-path OR-ing</td></tr>
 <tr><td>D5</td><td>Green LED</td><td>SMD</td><td>Status indicator</td></tr>
 <tr><td>D6,D7,D8</td><td>MBR0530</td><td>SOD-123</td><td>SSD1680 charge pump</td></tr>
-<tr><td>R1-R13</td><td>10k/1.2k/100R/0.47R/5.1k/1k/100k</td><td>SMD</td><td>Pull-up, charge, CC, LED, VBAT sense</td></tr>
-<tr><td>C1-C21</td><td>10uF/1uF/100nF/4.7uF</td><td>SMD</td><td>Decoupling, charge pump, VBAT filter</td></tr>
+<tr><td>R1-R14</td><td>10k/1.2k/100R/0.47R/5.1k/1k/100k</td><td>SMD</td><td>Pull-up, charge, CC, LED, VBAT sense, USER_BTN</td></tr>
+<tr><td>C1-C22</td><td>10uF/1uF/100nF/4.7uF</td><td>SMD</td><td>Decoupling, charge pump, VBAT and USER_BTN filters</td></tr>
 <tr><td>L1</td><td>68uH</td><td>Power inductor</td><td>SSD1680 charge pump</td></tr>
 <tr><td>Q1</td><td>AO3400A</td><td>SOT-23</td><td>SSD1680 gate drive</td></tr>
-<tr><td>SW1</td><td>SPDT switch</td><td>SMD</td><td>Debug/normal mode</td></tr></tbody>
+<tr><td>SW1</td><td>SPDT switch</td><td>SMD</td><td>Debug/normal mode</td></tr>
+<tr><td>SW2</td><td>USER_BTN (NO)</td><td>TL3301AN/SMD</td><td>GPIO33 active-low user button; no EN/RST connection</td></tr></tbody>
 </table>
 
-<div class="note">注意：该 HTML 是需求/组件/网络意图预览；KiCad 原理图文件已同步到 52 个组件并通过 netlist 导出验证，但最终 PCB 前仍需在 KiCad GUI 中完成全量 pin-to-pin 连线和 ERC/DRC。</div>
+<div class="note">注意：该 HTML 是下一版 PCB 的需求/组件/网络意图预览。KiCad 原理图的 USER_BTN_N 已通过 netlist 导出验证：GPIO33、R14、C22、SW2 和 3V3/GND 端点连接正确，且 USER_BTN 不连接 EN/RST。全量既有骨架原理图在 PCB 前仍需在 KiCad GUI 中完成 ERC/DRC 与其余 pin-to-pin 审核；现有外部原型 GPIO 映射不同。</div>
 </body>
 </html>
